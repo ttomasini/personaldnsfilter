@@ -1451,7 +1451,7 @@ public class DNSProxyActivity extends Activity implements ExecutionEnvironmentIn
 	public void wakeLock(){
 		WifiLock wifiLock = ((WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE)).createWifiLock(WifiManager.WIFI_MODE_FULL, "personalHttpProxy");
 		wifiLock.acquire();
-		WakeLock wakeLock = ((PowerManager) getSystemService(Context.POWER_SERVICE)).newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "personalHttpProxy");
+		WakeLock wakeLock = ((PowerManager) getSystemService(Context.POWER_SERVICE)).newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "personalHttpProxy:wakelock");
 		wakeLock.acquire();
 		wakeLooks.push(new Object[]{wifiLock, wakeLock});
 		Logger.getLogger().logLine("Aquired WIFI lock and partial wake lock!");
