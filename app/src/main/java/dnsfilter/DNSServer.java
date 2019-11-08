@@ -31,7 +31,6 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
-import java.net.UnknownHostException;
 import util.conpool.Connection;
 import util.http.HttpHeader;
 
@@ -40,8 +39,8 @@ public class DNSServer {
     protected InetSocketAddress address;
     protected int timeout;
 
-    public static final int UDP = 0; //Via UDP
-    public static final int TCP = 1; //Via TCP
+    public static final int UDP = 0; // Via UDP
+    public static final int TCP = 1; // Via TCP
     public static final int DOT = 2; // DNS over TLS
     public static final int DOH = 3; // DNS of HTTPS
 
@@ -53,15 +52,18 @@ public class DNSServer {
 
     public static int getProtoFromString(String s) throws IOException{
         s = s.toUpperCase();
-        if (s.equals("UDP"))
-            return UDP;
-        else if (s.equals("TCP"))
-            return TCP;
-        else if (s.equals("DOT"))
-            return DOT;
-        else if (s.equals("DOH"))
-            return DOH;
-        else throw new IOException("Invalid Protocol: "+s);
+        switch (s) {
+            case "UDP":
+                return UDP;
+            case "TCP":
+                return TCP;
+            case "DOT":
+                return DOT;
+            case "DOH":
+                return DOH;
+            default:
+                throw new IOException("Invalid Protocol: " + s);
+        }
     }
 
 
@@ -97,7 +99,7 @@ public class DNSServer {
             }
         } else { // Check if String is just IP without brackets for backward compatibility
             String specUpper = spec.toUpperCase();
-            if (specUpper.indexOf("::UDP") == -1 && specUpper.indexOf("::DOT") == -1 && specUpper.indexOf("::DOH") == -1 ) {
+            if (!specUpper.contains("::UDP") && !specUpper.contains("::DOT") && !specUpper.contains("::DOH")) {
                 ip = spec; //just the ip String
                 spec = "";
             }
@@ -109,7 +111,7 @@ public class DNSServer {
             ip = entryTokens[0];
         
         int port = 53;
-        if (entryTokens.length>1) {
+        if (entryTokens.length > 1) {
             try {
                 port = Integer.parseInt(entryTokens[1]);
             } catch (NumberFormatException nfe) {
@@ -136,7 +138,7 @@ public class DNSServer {
 
     @Override
     public String toString() {
-        return "["+address.getAddress().getHostAddress()+"]::"+address.getPort()+"::"+getProtocolName();
+        return "[" + address.getAddress().getHostAddress() + "]::" + address.getPort() + "::"+getProtocolName();
     }
 
     @Override
@@ -171,8 +173,7 @@ class UDP extends DNSServer {
 
     @Override
     public void resolve(DatagramPacket request, DatagramPacket response) throws IOException {
-        DatagramSocket socket = new DatagramSocket();
-        try {
+        try (DatagramSocket socket = new DatagramSocket()) {
             request.setSocketAddress(address);
             socket.setSoTimeout(timeout);
             try {
@@ -185,8 +186,6 @@ class UDP extends DNSServer {
             } catch (IOException eio) {
                 throw new IOException("No DNS Response from " + address);
             }
-        } finally {
-            socket.close();
         }
     }
 }
@@ -199,8 +198,8 @@ class TCP extends DNSServer {
         this.ssl = ssl;
 
         if (hostName != null) {
-            if (hostName.indexOf("://")!= -1)
-                throw new IOException("Invalid hostname specified for "+getProtocolName()+": "+hostName);
+            if (hostName.contains("://"))
+                throw new IOException("Invalid hostname specified for " + getProtocolName() + ": " + hostName);
 
             this.address = new InetSocketAddress(InetAddress.getByAddress(hostName, address.getAddress()), port);
         }
@@ -275,7 +274,7 @@ class DoH extends DNSServer {
         urlHost = REQ_TEMPLATE.remote_host_name;
     }
 
-    private byte[] buildRequestHeader(int length) throws IOException {
+    private byte[] buildRequestHeader(int length) {
        return reqTemplate.replace("\nContent-Length: 999","\nContent-Length: "+length).getBytes();
     }
 

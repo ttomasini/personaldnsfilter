@@ -80,7 +80,7 @@ public class RemoteAccessClient extends ConfigurationAccess implements TimeoutLi
 
     @Override
     public String toString() {
-        return "REMOTE -> "+host+":"+port;
+        return "REMOTE -> " + host + ":" + port;
     }
 
 
@@ -363,7 +363,7 @@ public class RemoteAccessClient extends ConfigurationAccess implements TimeoutLi
 
     }
     @Override
-    public String getVersion() throws IOException {
+    public String getVersion() {
         return remote_version;
     }
 

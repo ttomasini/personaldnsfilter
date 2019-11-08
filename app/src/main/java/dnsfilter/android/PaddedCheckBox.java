@@ -2,7 +2,6 @@ package dnsfilter.android;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.os.Build;
 import android.util.AttributeSet;
 import android.widget.CheckBox;
 
@@ -13,8 +12,7 @@ public class PaddedCheckBox extends CheckBox {
 
 	private int convertDpToPx(int padding_in_dp) {
 		final float scale = getResources().getDisplayMetrics().density;
-		int padding_in_px = (int) (padding_in_dp * scale + 0.5f);
-		return padding_in_px;
+		return (int) (padding_in_dp * scale + 0.5f);
 	}
 
 
@@ -46,9 +44,7 @@ public class PaddedCheckBox extends CheckBox {
 			dpAsPx_10 = convertDpToPx(10);
 		}
 
-		if (Build.VERSION.SDK_INT >= 17)
-			this.setPadding(dpAsPx_10, dpAsPx_10, dpAsPx_10, dpAsPx_10);
-		else this.setPadding(dpAsPx_32, 0, 0, 0);
+		this.setPadding(dpAsPx_10, dpAsPx_10, dpAsPx_10, dpAsPx_10);
 
 	}
 }

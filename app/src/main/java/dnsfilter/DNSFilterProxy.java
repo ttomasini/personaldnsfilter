@@ -39,38 +39,38 @@ public class DNSFilterProxy implements Runnable {
 
 	DatagramSocket receiver;
 	boolean stopped = false;
-	int port = 53;
+	int port;
+
+	public DNSFilterProxy() {
+		this.port = 53;
+	}
 
 	public DNSFilterProxy(int port) {
 		this.port = port;
 	}
 
 	private static void initDNS(DNSFilterManager dnsFilterMgr) {
-		try {
 
-			boolean detect = Boolean.parseBoolean(dnsFilterMgr.getConfig().getProperty("detectDNS", "true"));
-			if (detect) {
-				Logger.getLogger().logLine("DNS detection not supported for this device");
-				Logger.getLogger().message("DNS detection not supported - Using fallback!");
-			}
-			Vector<DNSServer> dnsAdrs = new Vector<DNSServer>();
-			int timeout = Integer.parseInt(dnsFilterMgr.getConfig().getProperty("dnsRequestTimeout", "15000"));
-
-			StringTokenizer fallbackDNS = new StringTokenizer(dnsFilterMgr.getConfig().getProperty("fallbackDNS", ""), ";");
-			int cnt = fallbackDNS.countTokens();
-			for (int i = 0; i < cnt; i++) {
-				String dnsEntry = fallbackDNS.nextToken().trim();
-				Logger.getLogger().logLine("DNS:" + dnsEntry);
-				try {
-					dnsAdrs.add(DNSServer.getInstance().createDNSServer(dnsEntry, timeout));
-				} catch (IOException e) {
-					Logger.getLogger().logException(e);
-				}
-			}
-			DNSCommunicator.getInstance().setDNSServers(dnsAdrs.toArray(new DNSServer[dnsAdrs.size()]));
-		} catch (IOException e) {
-			Logger.getLogger().logException(e);
+		boolean detect = Boolean.parseBoolean(dnsFilterMgr.getConfig().getProperty("detectDNS", "true"));
+		if (detect) {
+			Logger.getLogger().logLine("DNS detection not supported for this device");
+			Logger.getLogger().message("DNS detection not supported - Using fallback!");
 		}
+		Vector<DNSServer> dnsAdrs = new Vector<>();
+		int timeout = Integer.parseInt(dnsFilterMgr.getConfig().getProperty("dnsRequestTimeout", "15000"));
+
+		StringTokenizer fallbackDNS = new StringTokenizer(dnsFilterMgr.getConfig().getProperty("fallbackDNS", ""), ";");
+		int cnt = fallbackDNS.countTokens();
+		for (int i = 0; i < cnt; i++) {
+			String dnsEntry = fallbackDNS.nextToken().trim();
+			Logger.getLogger().logLine("DNS:" + dnsEntry);
+			try {
+				dnsAdrs.add(DNSServer.getInstance().createDNSServer(dnsEntry, timeout));
+			} catch (IOException e) {
+				Logger.getLogger().logException(e);
+			}
+		}
+		DNSCommunicator.getInstance().setDNSServers(dnsAdrs.toArray(new DNSServer[dnsAdrs.size()]));
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -83,11 +83,7 @@ public class DNSFilterProxy implements Runnable {
 			@Override
 			public boolean debug() {
 				if (!debugInit) {
-					try {
-						debug = Boolean.parseBoolean(DNSFilterManager.getInstance().getConfig().getProperty("debug", "false"));
-					} catch (IOException e) {
-						Logger.getLogger().logException(e);
-					}
+					debug = Boolean.parseBoolean(DNSFilterManager.getInstance().getConfig().getProperty("debug", "false"));
 					debugInit=true;
 				}
 					
@@ -100,7 +96,7 @@ public class DNSFilterProxy implements Runnable {
 			}
 
 			@Override
-			public InputStream getAsset(String path) throws IOException {
+			public InputStream getAsset(String path) {
 				return Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
 			}
 

@@ -26,7 +26,6 @@ package dnsfilter;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
-import java.util.HashSet;
 import java.util.Set;
 
 import util.Logger;
@@ -114,15 +113,16 @@ public class DNSResponsePatcher {
 					// replace ip!
 					if (type == 1) // IPV4
 						buf.put(ipv4_localhost);
-					else if (type == 28) // IPV6
+					else {
 						buf.put(ipv6_localhost);
+					}
 				} else
 					buf.position(buf.position() + len); // go ahead
 
 				//log answer
 				if (TRAFFIC_LOG != null) {
 					byte[] answer = new byte[len];
-					String answerStr = null;
+					String answerStr;
 					buf.position(buf.position() - len);
 
 					if (type == 5)
@@ -154,21 +154,19 @@ public class DNSResponsePatcher {
 		else
 			result = FILTER.contains(host);
 
-		if (result == true)
-			Logger.getLogger().logLine("FILTERED:" + host);
-		else
-			Logger.getLogger().logLine("ALLOWED:" + host);
-
-		if (result == false)
-			okCnt++;
-		else
+		if (result) {
 			filterCnt++;
+			Logger.getLogger().logLine("FILTERED:" + host);
+		} else {
+			okCnt++;
+			Logger.getLogger().logLine("ALLOWED:" + host);
+		}
 
 		return result;
 	}
 
 
-	private static String readDomainName(ByteBuffer buf, int offs) throws IOException {
+	private static String readDomainName(ByteBuffer buf, int offs) {
 
 		byte[] substr = new byte[64];
 

@@ -29,9 +29,9 @@ public class AppSelectorView extends LinearLayout {
 
 	private class ComparableAppInfoWrapper implements Comparable<ComparableAppInfoWrapper> {
 
-		private String appName = null;
-		private ApplicationInfo wrapped = null;
-		CheckBox checkBox = null;
+		private String appName;
+		private ApplicationInfo wrapped;
+		CheckBox checkBox;
 
 		private ComparableAppInfoWrapper(ApplicationInfo wrapped, CheckBox checkBox) {
 			appName = checkBox.getText().toString();
@@ -93,7 +93,7 @@ public class AppSelectorView extends LinearLayout {
 
 				ApplicationInfo[] packages = pm.getInstalledApplications(PackageManager.GET_META_DATA).toArray(new ApplicationInfo[0]);
 
-				Set<ComparableAppInfoWrapper> sortedWrappers = new TreeSet<ComparableAppInfoWrapper>();
+				Set<ComparableAppInfoWrapper> sortedWrappers = new TreeSet<>();
 				for (int i = 0; i < packages.length && !abort; i++) {
 					CheckBox entry = (CheckBox) LayoutInflater.from(getContext()).inflate(R.layout.appselectorcheckbox, null);
 					entry.setChecked(selectedapppackages.contains("," + packages[i].packageName + ","));
@@ -193,15 +193,15 @@ public class AppSelectorView extends LinearLayout {
 			return selectedApps;
 
 		ComparableAppInfoWrapper[] allwrappers = wrappers;
-		String result = "";
+		StringBuilder result = new StringBuilder();
 		String delim = "";
 
-		for (int i = 0; i < allwrappers.length; i++) {
-			if (allwrappers[i].checkBox.isChecked()) {
-				result = result + delim + allwrappers[i].wrapped.packageName;
+		for (ComparableAppInfoWrapper allwrapper : allwrappers) {
+			if (allwrapper.checkBox.isChecked()) {
+				result.append(delim).append(allwrapper.wrapped.packageName);
 				delim = ", ";
 			}
 		}
-		return result;
+		return result.toString();
 	}
 }

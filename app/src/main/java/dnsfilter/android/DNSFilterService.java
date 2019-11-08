@@ -33,7 +33,6 @@ import android.content.pm.PackageManager;
 import android.net.VpnService;
 import android.os.Build;
 import android.os.ParcelFileDescriptor;
-import android.os.PowerManager.WakeLock;
 
 import java.io.DataOutputStream;
 import java.io.FileInputStream;
@@ -86,8 +85,8 @@ public class DNSFilterService extends VpnService  {
 	class VPNRunner implements Runnable {
 
 		ParcelFileDescriptor vpnInterface;
-		FileInputStream in = null;
-		FileOutputStream out = null;
+		FileInputStream in;
+		FileOutputStream out;
 		Thread thread = null;
 		boolean stopped = false;
 		int id;
@@ -206,7 +205,7 @@ public class DNSFilterService extends VpnService  {
 
 			if (DNSProxyActivity.debug)
 				Logger.getLogger().logLine("Detecting DNS Servers...");
-			Vector<DNSServer> dnsAdrs = new Vector<DNSServer>();
+			Vector<DNSServer> dnsAdrs = new Vector<>();
 
 			if (detect) {
 				try {
@@ -260,10 +259,7 @@ public class DNSFilterService extends VpnService  {
 		// google chrome bypassing the DNS via own DNS servers
 		StringTokenizer additionalRouteIps = new StringTokenizer(DNSFILTER.getConfig().getProperty("routeIPs", ""), ";");
 		int cnt = additionalRouteIps.countTokens();
-		if (cnt != 0 && Build.VERSION.SDK_INT < 21) {
-			cnt = 0;
-			Logger.getLogger().logLine("WARNING!: Setting 'routeIPs' not supported for Android version below 5.01!\n Setting ignored!");
-		}
+
 		for (int i = 0; i < cnt; i++) {
 			String value = additionalRouteIps.nextToken().trim();
 			Logger.getLogger().logLine("Additional route IP:" + value);
@@ -278,17 +274,10 @@ public class DNSFilterService extends VpnService  {
 			}
 		}
 
-		// this app itself should bypass VPN in order to prevent endless recursion
-		if (Build.VERSION.SDK_INT >= 21)
-			builder.addDisallowedApplication("dnsfilter.android");
-
 		//apply app whitelist
 		StringTokenizer appWhiteList = new StringTokenizer(DNSFILTER.getConfig().getProperty("androidAppWhiteList", ""), ",");
 		cnt = appWhiteList.countTokens();
-		if (cnt != 0 && Build.VERSION.SDK_INT < 21) {
-			cnt = 0;
-			Logger.getLogger().logLine("WARNING!: Application whitelisting not supported for Android version below 5.01!\n Setting ignored!");
-		}
+
 		for (int i = 0; i < cnt; i++) {
 			excludeApp(appWhiteList.nextToken().trim(), builder);
 		}
@@ -301,12 +290,6 @@ public class DNSFilterService extends VpnService  {
 			excludeApp("com.google.android.apps.photos", builder); //white list google photos
 			excludeApp("com.google.android.gm", builder); //white list gmail
 			excludeApp("com.google.android.apps.translate", builder); //white list google translate
-		}
-
-		if (Build.VERSION.SDK_INT >= 21) {
-			builder.setBlocking(true);
-			Logger.getLogger().logLine("Using Blocking Mode!");
-			blocking = true;
 		}
 
 		return builder.setConfigureIntent(pendingIntent).establish();
@@ -370,22 +353,18 @@ public class DNSFilterService extends VpnService  {
 			} else Logger.getLogger().logLine("Error! Cannot get VPN Interface! Try restart!");
 
 
-			if (android.os.Build.VERSION.SDK_INT >= 16) {
-
-				Notification.Builder notibuilder;
-				if (android.os.Build.VERSION.SDK_INT >= 26)
-					notibuilder = new Notification.Builder(this, getChannel());
-				else
-					notibuilder = new Notification.Builder(this);
-
-				noti = notibuilder
-						.setContentTitle("DNSFilter is running!")
-						.setSmallIcon(R.drawable.icon)
-						.setContentIntent(pendingIntent)
-						.build();
+			Notification.Builder notibuilder;
+			if (Build.VERSION.SDK_INT >= 26) {
+				notibuilder = new Notification.Builder(this, getChannel());
 			} else {
-				noti = new Notification(R.drawable.icon, "DNSFilter is running!",0);
+				notibuilder = new Notification.Builder(this);
 			}
+
+			noti = notibuilder
+					.setContentTitle("DNSFilter is running!")
+					.setSmallIcon(R.drawable.icon)
+					.setContentIntent(pendingIntent)
+					.build();
 
 			startForeground(1, noti);
 
@@ -555,7 +534,7 @@ public class DNSFilterService extends VpnService  {
 			vpnRunner.stop();
 		}
 		DNSFILTER = DNSFilterManager.getInstance();
-		ParcelFileDescriptor vpnInterface=null;
+		ParcelFileDescriptor vpnInterface;
 		try {
 			vpnInterface = initVPN();
 		} catch (Exception e){

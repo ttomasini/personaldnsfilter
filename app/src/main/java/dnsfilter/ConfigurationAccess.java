@@ -54,9 +54,9 @@ public abstract class ConfigurationAccess {
 
     abstract public String getVersion() throws IOException;
 
-    abstract public int openConnectionsCount()  throws IOException;;
+    abstract public int openConnectionsCount()  throws IOException;
 
-    abstract public String getLastDNSAddress()  throws IOException;;
+    abstract public String getLastDNSAddress()  throws IOException;
 
     abstract public void restart() throws IOException ;
 
@@ -64,7 +64,7 @@ public abstract class ConfigurationAccess {
 
     abstract public long[] getFilterStatistics() throws IOException;
 
-    abstract public void triggerUpdateFilter()  throws IOException;;
+    abstract public void triggerUpdateFilter()  throws IOException;
 
     abstract public void doBackup() throws IOException ;
 

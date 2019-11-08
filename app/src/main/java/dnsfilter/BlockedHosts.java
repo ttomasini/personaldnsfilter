@@ -149,10 +149,10 @@ public class BlockedHosts implements Set {
 		File patternFile = new File(path+"/blockedpatterns");
 		if (patternFile.exists()){
 			BufferedReader fin = new BufferedReader(new InputStreamReader(new FileInputStream(patternFile)));
-			blockedPatterns = new Vector<String[]>();
+			blockedPatterns = new Vector<>();
 			String entry;
 			while ( (entry = fin.readLine()) != null) {
-				blockedPatterns.addElement( ((String)entry).trim().split("\\*", -1));
+				blockedPatterns.addElement( entry.trim().split("\\*", -1));
 			}
 			fin.close();
 		}
@@ -165,9 +165,7 @@ public class BlockedHosts implements Set {
 			blockedHostsHashes.persist(path);
 			if (blockedPatterns != null) {
 				OutputStream patterns = new BufferedOutputStream(new FileOutputStream(path + "/blockedpatterns"));
-				Iterator it = blockedPatterns.iterator();
-				while (it.hasNext()) {
-					String[] fixedParts = (String[]) it.next();
+				for (String[] fixedParts : blockedPatterns) {
 					String patternStr = fixedParts[0];
 					for (int i = 1; i < fixedParts.length; i++) {
 						patternStr = patternStr + "*" + fixedParts[i];
@@ -193,7 +191,7 @@ public class BlockedHosts implements Set {
 
 
 	public void prepareInsert(String host) {
-		if (host.indexOf("*") == -1) //patterns are handled differently
+		if (!host.contains("*")) //patterns are handled differently
 			blockedHostsHashes.prepareInsert(Utils.getLongStringHash(host));
 	}
 
@@ -209,13 +207,13 @@ public class BlockedHosts implements Set {
 
 	private Vector<String[]> getInitializedPatternStruct() {
 		if (blockedPatterns==null)
-			blockedPatterns = new Vector<String[]>();
+			blockedPatterns = new Vector<>();
 		return blockedPatterns;
 	}
 
 
 	public void clearCache(String host) {
-		long hostHash = Utils.getLongStringHash((String) host);
+		long hostHash = Utils.getLongStringHash(host);
 		okCache.remove(hostHash);
 		filterListCache.remove(hostHash);
 	}
@@ -224,7 +222,7 @@ public class BlockedHosts implements Set {
 		try {
 			lock(1);
 
-			if (((String) host).indexOf("*") != -1)
+			if (((String) host).contains("*"))
 				throw new IOException("Wildcard not supported for update:" + host);
 
 			long hostHash = Utils.getLongStringHash((String) host);
@@ -240,7 +238,7 @@ public class BlockedHosts implements Set {
 
 	@Override
 	public boolean add(Object host) {
-		if (((String) host).indexOf("*") == -1)
+		if (!((String) host).contains("*"))
 			return blockedHostsHashes.add(Utils.getLongStringHash((String) host));
 		else { //Pattern
 			getInitializedPatternStruct().addElement( ((String)host).trim().split("\\*", -1));
@@ -253,9 +251,7 @@ public class BlockedHosts implements Set {
 		if ( blockedPatterns == null)
 			return false;
 
-		Iterator it = blockedPatterns.iterator();
-		while (it.hasNext()) {
-			String[] fixedParts = (String[]) it.next();
+		for (String[] fixedParts : blockedPatterns) {
 			if (wildCardMatch(fixedParts, host))
 				return true;
 		}
@@ -330,7 +326,7 @@ public class BlockedHosts implements Set {
 			if (hostsFilterOverRule != null) {
 				Object val = hostsFilterOverRule.get(hostName);
 				if (val != null)
-					return ((Boolean) val).booleanValue();
+					return (Boolean) val;
 			}
 			if (blockedHostsHashes.contains(hosthash))
 				return true;

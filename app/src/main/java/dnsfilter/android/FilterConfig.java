@@ -14,11 +14,8 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.view.View.OnClickListener;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.TreeMap;
-
-import util.Logger;
 
 
 public class FilterConfig implements OnClickListener, DialogInterface.OnKeyListener {
@@ -138,22 +135,25 @@ public class FilterConfig implements OnClickListener, DialogInterface.OnKeyListe
 
 		this.filterEntries = entries;
 		categoryMap.clear();
-		categoryMap.put(ALL_ACTIVE,new Integer(0));
-		categoryMap.put(ALL_CATEGORIES,new Integer(0));
-		for (int i = 0; i < filterEntries.length; i++) {
-			Integer count = categoryMap.get(filterEntries[i].category);
+		categoryMap.put(ALL_ACTIVE, 0);
+		categoryMap.put(ALL_CATEGORIES, 0);
+		for (FilterConfigEntry filterEntry : filterEntries) {
+			Integer count = categoryMap.get(filterEntry.category);
 			if (count == null)
-				count = new Integer(0);
-			count = new Integer(count.intValue()+1);
-			categoryMap.put(filterEntries[i].category, count);
+				count = 0;
+			count = count + 1;
+			categoryMap.put(filterEntry.category, count);
 		}
 	}
 
 	public void load() {
-		if (loaded) return;
+		if (loaded) {
+			return;
+		}
 
-		for (int i = 0; i < filterEntries.length; i++)
-			addItem(filterEntries[i]);
+		for (FilterConfigEntry filterEntry : filterEntries) {
+			addItem(filterEntry);
+		}
 		addEmptyEndItem();
 
 		categoryDown.setOnClickListener(this);
@@ -248,7 +248,7 @@ public class FilterConfig implements OnClickListener, DialogInterface.OnKeyListe
 		((TextView)editDialog.findViewById(R.id.filterUrl)).setText(((TextView)currentContent[3]).getText().toString());
 		editDialog.show();
 		WindowManager.LayoutParams lp = editDialog.getWindow().getAttributes();
-		lp.width = (int)(configTable.getContext().getResources().getDisplayMetrics().widthPixels*1.00);;
+		lp.width = (int)(configTable.getContext().getResources().getDisplayMetrics().widthPixels*1.00);
 		editDialog.getWindow().setAttributes(lp);
 	}
 
@@ -268,10 +268,12 @@ public class FilterConfig implements OnClickListener, DialogInterface.OnKeyListe
 				configTable.removeView(editedRow);
 				String currentCategory = ((TextView)currentContent[1]).getText().toString();
 				Integer count = categoryMap.get(currentCategory);
-				if (count.intValue() ==1)
+				if (count == 1) {
 					categoryMap.remove(currentCategory);
-				else
-					categoryMap.put(currentCategory, new Integer(count.intValue()-1));
+
+				} else {
+					categoryMap.put(currentCategory, count - 1);
+				}
 			}
 			editDialog.dismiss();
 			editDialog.findViewById(R.id.errorMsg).setVisibility(View.GONE);
@@ -304,16 +306,16 @@ public class FilterConfig implements OnClickListener, DialogInterface.OnKeyListe
 				//decrease count for previous category
 				if (!currentCategory.equals(NEW_ITEM)) {
 					Integer count = categoryMap.get(currentCategory);
-					if (count.intValue() ==1)
+					if (count == 1)
 						categoryMap.remove(currentCategory);
 					else
-						categoryMap.put(currentCategory, new Integer(count.intValue()-1));
+						categoryMap.put(currentCategory, count - 1);
 				}
 				//increase count for new category
 				Integer count = categoryMap.get(category);
 				if (count == null)
-					count = new Integer(0);
-				categoryMap.put(category, new Integer(count.intValue()+1));
+					count = 0;
+				categoryMap.put(category, count + 1);
 			}
 
 			((CheckBox)currentContent[0]).setChecked(active);
@@ -334,19 +336,16 @@ public class FilterConfig implements OnClickListener, DialogInterface.OnKeyListe
 		addEmptyEndItem();
 	}
 
-	private void validateContent(View[] cells) throws Exception{
-		try {
-			URL url = new URL(((TextView) cells[3]).getText().toString());
-			String shortTxt = ((TextView) cells[2]).getText().toString().trim();
-			if (shortTxt.equals(NEW_ITEM) || shortTxt.equals(""))
-				((TextView) cells[2]).setText(url.getHost());
+	private void validateContent(View[] cells) throws Exception {
+		URL url = new URL(((TextView) cells[3]).getText().toString());
+		String shortTxt = ((TextView) cells[2]).getText().toString().trim();
+		if (shortTxt.equals(NEW_ITEM) || shortTxt.equals("")) {
+			((TextView) cells[2]).setText(url.getHost());
+		}
 
-			String category = ((TextView) cells[1]).getText().toString().trim();
-			if (category.equals(NEW_ITEM) || category.equals(""))
-				((TextView) cells[1]).setText(url.getHost());
-
-		} catch (MalformedURLException e) {
-			throw e;
+		String category = ((TextView) cells[1]).getText().toString().trim();
+		if (category.equals(NEW_ITEM) || category.equals("")) {
+			((TextView) cells[1]).setText(url.getHost());
 		}
 	}
 }

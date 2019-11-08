@@ -29,12 +29,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.net.SocketAddress;
 
 import util.ExecutionEnvironment;
 import util.Logger;
-import util.Utils;
 
 public class DNSResolver implements Runnable {
 

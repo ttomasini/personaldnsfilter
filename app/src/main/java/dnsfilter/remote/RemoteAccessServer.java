@@ -13,7 +13,6 @@ import java.io.StringWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Properties;
 
 import dnsfilter.ConfigurationAccess;
@@ -32,7 +31,7 @@ public class RemoteAccessServer implements Runnable {
 
     boolean stopped = false;
     private ServerSocket server;
-    private HashMap sessions = new HashMap<Integer, RemoteSession>();
+    private HashMap<Integer, RemoteSession> sessions = new HashMap<>();
 
 
     public RemoteAccessServer(int port, String keyphrase) throws IOException{
@@ -138,7 +137,7 @@ public class RemoteAccessServer implements Runnable {
         long lastHeartBeatConfirm = System.currentTimeMillis();//last confirmed heartbeat
 
 
-        private RemoteSession(Socket con, InputStream in, OutputStream out, int id) throws IOException{
+        private RemoteSession(Socket con, InputStream in, OutputStream out, int id) {
             this.id = id;
             this.socket = con;
             this.out = new DataOutputStream(out);
@@ -215,83 +214,115 @@ public class RemoteAccessServer implements Runnable {
 
             try {
 
-                if (action.equals("getConfig()")) {
-                    Properties config = ConfigurationAccess.getLocal().getConfig();
-                    out.write("OK\n".getBytes());
-                    ObjectOutputStream objout = new ObjectOutputStream(out);
-                    objout.writeObject(config);
-                    objout.flush();
-                } else if (action.equals("readConfig()")) {
-                    byte[] result = ConfigurationAccess.getLocal().readConfig();
-                    out.write("OK\n".getBytes());
-                    out.writeInt(result.length);
-                    out.write(result);
-                    out.flush();
-                } else if (action.equals("updateConfig()")) {
-                    byte[] cfg = new byte[in.readInt()];
-                    in.readFully(cfg);
-                    ConfigurationAccess.getLocal().updateConfig(cfg);
-                    out.write("OK\n".getBytes());
-                    out.flush();
-                } else if (action.equals("getAdditionalHosts()")) {
-                    int limit = in.readInt();
-                    byte[] result = ConfigurationAccess.getLocal().getAdditionalHosts(limit);
-                    out.write("OK\n".getBytes());
-                    out.writeInt(result.length);
-                    out.write(result);
-                    out.flush();
-                } else if (action.equals("updateAdditionalHosts()")) {
-                    byte[] cfg = new byte[in.readInt()];
-                    in.readFully(cfg);
-                    ConfigurationAccess.getLocal().updateAdditionalHosts(cfg);
-                    out.write("OK\n".getBytes());
-                    out.flush();
-                } else if (action.equals("updateFilter()")) {
-                    String entries = Utils.readLineFromStream(in);
-                    boolean filter = Boolean.parseBoolean(Utils.readLineFromStream(in));
-                    ConfigurationAccess.getLocal().updateFilter(entries, filter);
-                    out.write("OK\n".getBytes());
-                    out.flush();
-                } else if (action.equals("restart()")) {
-                    ConfigurationAccess.getLocal().restart();
-                    out.write("OK\n".getBytes());
-                    out.flush();
-                } else if (action.equals("stop()")) {
-                    ConfigurationAccess.getLocal().stop();
-                    out.write("OK\n".getBytes());
-                    out.flush();
-                } else if (action.equals("getFilterStatistics()")) {
-                    long[] result = ConfigurationAccess.getLocal().getFilterStatistics();
-                    out.write("OK\n".getBytes());
-                    out.writeLong(result[0]);
-                    out.writeLong(result[1]);
-                    out.flush();
-                } else if (action.equals("triggerUpdateFilter()")) {
-                    ConfigurationAccess.getLocal().triggerUpdateFilter();
-                    out.write("OK\n".getBytes());
-                    out.flush();
-                } else if (action.equals("doBackup()")) {
-                    ConfigurationAccess.getLocal().doBackup();
-                    out.write("OK\n".getBytes());
-                    out.flush();
-                } else if (action.equals("doRestore()")) {
-                    ConfigurationAccess.getLocal().doRestore();
-                    out.write("OK\n".getBytes());
-                    out.flush();
-                } else if (action.equals("doRestoreDefaults()")) {
-                    ConfigurationAccess.getLocal().doRestoreDefaults();
-                    out.write("OK\n".getBytes());
-                    out.flush();
-                } else if (action.equals("wakeLock()")) {
-                    ConfigurationAccess.getLocal().wakeLock();
-                    out.write("OK\n".getBytes());
-                    out.flush();
-                } else if (action.equals("releaseWakeLock()")) {
-                    ConfigurationAccess.getLocal().releaseWakeLock();
-                    out.write("OK\n".getBytes());
-                    out.flush();
-                } else
-                    throw new ConfigurationAccess.ConfigurationAccessException("Unknown action: " + action);
+                switch (action) {
+                    case "getConfig()": {
+                        Properties config = ConfigurationAccess.getLocal().getConfig();
+                        out.write("OK\n".getBytes());
+                        ObjectOutputStream objout = new ObjectOutputStream(out);
+                        objout.writeObject(config);
+                        objout.flush();
+                        break;
+                    }
+                    case "readConfig()": {
+                        byte[] result = ConfigurationAccess.getLocal().readConfig();
+                        out.write("OK\n".getBytes());
+                        out.writeInt(result.length);
+                        out.write(result);
+                        out.flush();
+                        break;
+                    }
+                    case "updateConfig()": {
+                        byte[] cfg = new byte[in.readInt()];
+                        in.readFully(cfg);
+                        ConfigurationAccess.getLocal().updateConfig(cfg);
+                        out.write("OK\n".getBytes());
+                        out.flush();
+                        break;
+                    }
+                    case "getAdditionalHosts()": {
+                        int limit = in.readInt();
+                        byte[] result = ConfigurationAccess.getLocal().getAdditionalHosts(limit);
+                        out.write("OK\n".getBytes());
+                        out.writeInt(result.length);
+                        out.write(result);
+                        out.flush();
+                        break;
+                    }
+                    case "updateAdditionalHosts()": {
+                        byte[] cfg = new byte[in.readInt()];
+                        in.readFully(cfg);
+                        ConfigurationAccess.getLocal().updateAdditionalHosts(cfg);
+                        out.write("OK\n".getBytes());
+                        out.flush();
+                        break;
+                    }
+                    case "updateFilter()": {
+                        String entries = Utils.readLineFromStream(in);
+                        boolean filter = Boolean.parseBoolean(Utils.readLineFromStream(in));
+                        ConfigurationAccess.getLocal().updateFilter(entries, filter);
+                        out.write("OK\n".getBytes());
+                        out.flush();
+                        break;
+                    }
+                    case "restart()": {
+                        ConfigurationAccess.getLocal().restart();
+                        out.write("OK\n".getBytes());
+                        out.flush();
+                        break;
+                    }
+                    case "stop()": {
+                        ConfigurationAccess.getLocal().stop();
+                        out.write("OK\n".getBytes());
+                        out.flush();
+                        break;
+                    }
+                    case "getFilterStatistics()": {
+                        long[] result = ConfigurationAccess.getLocal().getFilterStatistics();
+                        out.write("OK\n".getBytes());
+                        out.writeLong(result[0]);
+                        out.writeLong(result[1]);
+                        out.flush();
+                        break;
+                    }
+                    case "triggerUpdateFilter()": {
+                        ConfigurationAccess.getLocal().triggerUpdateFilter();
+                        out.write("OK\n".getBytes());
+                        out.flush();
+                        break;
+                    }
+                    case "doBackup()": {
+                        ConfigurationAccess.getLocal().doBackup();
+                        out.write("OK\n".getBytes());
+                        out.flush();
+                        break;
+                    }
+                    case "doRestore()": {
+                        ConfigurationAccess.getLocal().doRestore();
+                        out.write("OK\n".getBytes());
+                        out.flush();
+                        break;
+                    }
+                    case "doRestoreDefaults()": {
+                        ConfigurationAccess.getLocal().doRestoreDefaults();
+                        out.write("OK\n".getBytes());
+                        out.flush();
+                        break;
+                    }
+                    case "wakeLock()": {
+                        ConfigurationAccess.getLocal().wakeLock();
+                        out.write("OK\n".getBytes());
+                        out.flush();
+                        break;
+                    }
+                    case "releaseWakeLock()": {
+                        ConfigurationAccess.getLocal().releaseWakeLock();
+                        out.write("OK\n".getBytes());
+                        out.flush();
+                        break;
+                    }
+                    default:
+                        throw new ConfigurationAccess.ConfigurationAccessException("Unknown action: " + action);
+                }
 
             } catch (ConfigurationAccess.ConfigurationAccessException e) {
                 out.write((e.getMessage().replace("\n", "\t")+"\n").getBytes());

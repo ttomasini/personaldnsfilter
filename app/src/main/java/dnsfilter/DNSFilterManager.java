@@ -224,7 +224,7 @@ public class DNSFilterManager extends ConfigurationAccess  {
 	}
 
 	@Override
-	public Properties getConfig() throws IOException {
+	public Properties getConfig() {
 
 		try {
 			if (config == null) {
@@ -292,9 +292,9 @@ public class DNSFilterManager extends ConfigurationAccess  {
 		FileOutputStream mergedout = new FileOutputStream(mergedConfig);
 		String ln = "";
 		while ((ln = defCfgReader.readLine()) != null) {
-			for (int i = 0; i < currentKeys.length; i++)
-				if (ln.startsWith(currentKeys[i] + " ="))
-					ln = currentKeys[i] + " = " + currentConfig.getProperty(currentKeys[i], "");
+			for (String currentKey : currentKeys)
+				if (ln.startsWith(currentKey + " ="))
+					ln = currentKey + " = " + currentConfig.getProperty(currentKey, "");
 
 			mergedout.write((ln + "\r\n").getBytes());
 		}
@@ -658,7 +658,7 @@ public class DNSFilterManager extends ConfigurationAccess  {
 						throw new IOException("Buffer Overflow!");
 
 					if ( r < 32 && r < 9 && r > 13)
-						throw new IOException ("Non Printable character: "+r+"("+((char)r)+")");
+						throw new IOException ("Non Printable character: " + r + "(" + ((char)r) + ")");
 
 					buf[pos] = (byte) (r);
 					pos++;
